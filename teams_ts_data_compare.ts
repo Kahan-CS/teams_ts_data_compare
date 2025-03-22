@@ -1,6 +1,6 @@
 import fs from "fs";
 
-// Load and parse the TS files
+// Load the TS files (they could be exporting an object rather than an array)
 const incoming: any = require("./data/incoming");
 const current: any = require("./data/current");
 
@@ -10,18 +10,35 @@ interface Member {
   socialLinks?: { icon: any; url: string }[];
 }
 
+// Helper to get the teams array from the imported data
+function getTeamsArray(data: any): any[] {
+  if (Array.isArray(data)) {
+    return data;
+  } else if (Array.isArray(data.default)) {
+    return data.default;
+  } else if (Array.isArray(data.teams)) {
+    return data.teams;
+  } else {
+    throw new Error("Unexpected data format. Expected an array of teams.");
+  }
+}
+
 // Function to extract members from teams
 function extractMembers(data: any): Record<string, string[]> {
+  const teams = getTeamsArray(data);
   const membersMap: Record<string, string[]> = {};
-  data.forEach((team: any) => {
-    team.members.forEach((member: Member) => {
-      if (member.socialLinks && member.socialLinks.length > 0) {
-        if (!membersMap[member.name]) {
-          membersMap[member.name] = [];
+
+  teams.forEach((team: any) => {
+    if (team.members && Array.isArray(team.members)) {
+      team.members.forEach((member: Member) => {
+        if (member.socialLinks && member.socialLinks.length > 0) {
+          if (!membersMap[member.name]) {
+            membersMap[member.name] = [];
+          }
+          membersMap[member.name].push(member.description);
         }
-        membersMap[member.name].push(member.description);
-      }
-    });
+      });
+    }
   });
   return membersMap;
 }
@@ -48,7 +65,7 @@ for (const name in incomingMembers) {
   }
 }
 
-// Check for removed members
+// Check for removed members (present in current but not in incoming)
 for (const name in currentMembers) {
   if (!incomingMembers[name]) {
     removedFromIncoming.push(name);

@@ -1,20 +1,38 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-// Load and parse the TS files
+// Load the TS files (they could be exporting an object rather than an array)
 const incoming = require("./data/incoming");
 const current = require("./data/current");
+// Helper to get the teams array from the imported data
+function getTeamsArray(data) {
+    if (Array.isArray(data)) {
+        return data;
+    }
+    else if (Array.isArray(data.default)) {
+        return data.default;
+    }
+    else if (Array.isArray(data.teams)) {
+        return data.teams;
+    }
+    else {
+        throw new Error("Unexpected data format. Expected an array of teams.");
+    }
+}
 // Function to extract members from teams
 function extractMembers(data) {
+    const teams = getTeamsArray(data);
     const membersMap = {};
-    data.forEach((team) => {
-        team.members.forEach((member) => {
-            if (member.socialLinks && member.socialLinks.length > 0) {
-                if (!membersMap[member.name]) {
-                    membersMap[member.name] = [];
+    teams.forEach((team) => {
+        if (team.members && Array.isArray(team.members)) {
+            team.members.forEach((member) => {
+                if (member.socialLinks && member.socialLinks.length > 0) {
+                    if (!membersMap[member.name]) {
+                        membersMap[member.name] = [];
+                    }
+                    membersMap[member.name].push(member.description);
                 }
-                membersMap[member.name].push(member.description);
-            }
-        });
+            });
+        }
     });
     return membersMap;
 }
@@ -36,7 +54,7 @@ for (const name in incomingMembers) {
         missingInCurrent.push(name);
     }
 }
-// Check for removed members
+// Check for removed members (present in current but not in incoming)
 for (const name in currentMembers) {
     if (!incomingMembers[name]) {
         removedFromIncoming.push(name);
