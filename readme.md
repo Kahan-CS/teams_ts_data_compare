@@ -1,3 +1,10 @@
+## Purpose of the Script
+
+This script is designed for the Seneca Hackathon IT team's internal tasks. The primary objective is to compare team data fetched by a Python script (which retrieves responses from Microsoft Forms and Google Forms) with the existing team data. By "team data," we refer to the internal teams of the Seneca Hackathon organization.
+
+The custom instructions for modifying the incoming data are based on the inconsistencies reported in the incoming data from the aforementioned Python script.
+
+
 ## Steps to follow
 
 1. Make sure to have TypeScript installed, use: `npm i -g typescript`
